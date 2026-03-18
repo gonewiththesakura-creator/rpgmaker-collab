@@ -1,0 +1,23 @@
+{
+  "queue": "todo",
+  "updatedAt": "2026-03-18",
+  "items": [
+    {
+      "id": "bootstrap-001",
+      "type": "mixed",
+      "title": "定义游戏核心概念与第一章方向",
+      "status": "todo",
+      "assignedTo": null,
+      "createdBy": "supervisor",
+      "priority": "high",
+      "description": "明确游戏主概念、主角定位、第一章目标，以及需要剧本与技术同时参与的初始任务。",
+      "acceptance": [
+        "有一句话主概念",
+        "有第一章主题和目标",
+        "剧本与技术都给出建议",
+        "监督输出最终取舍"
+      ],
+      "notes": []
+    }
+  ]
+}
