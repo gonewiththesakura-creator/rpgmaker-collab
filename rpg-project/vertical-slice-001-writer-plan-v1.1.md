@@ -1,10 +1,10 @@
-# Vertical Slice 001 - Writer Plan (v1.1)
+# Vertical Slice 001 - Writer Plan (v1.1.1)
 
 **Task ID**: vertical-slice-001-writer-plan-v1  
 **Based on**: master-plan-summary.md, character-priority-001-v2  
 **Status**: Ready for Supervisor Recheck  
 **Node**: Writer  
-**Date**: 2025-03-18
+**Date**: 2026-03-18
 
 ---
 
@@ -82,9 +82,9 @@
 
 **推进点**：
 - 玉佩指引至废弃村庄古碑
-- 黑衣人现身阻止，双方交手（**主角方必败**，统一方案）
+- 黑衣人现身阻止，双方交手（**主角方必败，但趁乱获得家谱**）
 - 谢临川为保护主角受伤
-- 趁乱调查古碑，发现密室与残破家谱
+- **败中取得收获**：主角在密室找到沈家残破家谱并带走（关键线索）
 - 家谱记载"九劫归一"碎片，提及"血脉封印"
 
 **结尾钩子**：败逃途中主角闪过陌生记忆（绮罗音面孔），耳边低语"我们等你回来"
