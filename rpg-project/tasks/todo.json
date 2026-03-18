@@ -3,19 +3,53 @@
   "updatedAt": "2026-03-18",
   "items": [
     {
-      "id": "bootstrap-001",
+      "id": "concept-001",
       "type": "mixed",
-      "title": "定义游戏核心概念与第一章方向",
+      "title": "提炼《太玄界》项目官方一句话主概念与项目基调",
       "status": "todo",
       "assignedTo": null,
       "createdBy": "supervisor",
       "priority": "high",
-      "description": "明确游戏主概念、主角定位、第一章目标，以及需要剧本与技术同时参与的初始任务。",
+      "description": "基于用户提供的总企划，提炼一条对内对外都能使用的项目主概念，并明确游戏的表层体验、深层主题和情绪基调。需要剧本与技术同时参与，监督最终定稿。",
       "acceptance": [
         "有一句话主概念",
-        "有第一章主题和目标",
-        "剧本与技术都给出建议",
-        "监督输出最终取舍"
+        "有表层玩法定位",
+        "有深层主题表达",
+        "有技术上适合做 vertical slice 的边界判断"
+      ],
+      "notes": []
+    },
+    {
+      "id": "vertical-slice-001",
+      "type": "mixed",
+      "title": "定义第一阶段 vertical slice 范围（第一章到第四章）",
+      "status": "todo",
+      "assignedTo": null,
+      "createdBy": "supervisor",
+      "priority": "high",
+      "description": "将总企划中的第一章到第四章整理为首个可制作版本，明确哪些内容必须先做，哪些内容暂缓。剧本负责叙事重点与场景节奏，技术负责 RPGMaker 实现边界与复杂度控制。",
+      "acceptance": [
+        "有第一阶段章节目标概述",
+        "有核心场景清单",
+        "有关键角色清单",
+        "有实现优先级",
+        "有明确暂缓项"
+      ],
+      "notes": []
+    },
+    {
+      "id": "character-priority-001",
+      "type": "writer",
+      "title": "确定首批必须优先落地的人物与其功能定位",
+      "status": "todo",
+      "assignedTo": null,
+      "createdBy": "supervisor",
+      "priority": "high",
+      "description": "基于当前总企划，梳理第一阶段真正必须优先写实的角色，不做全量展开，先服务第一章到第四章体验。",
+      "acceptance": [
+        "列出首批核心角色",
+        "解释每个角色在前四章的功能",
+        "指出哪些角色可后置深化"
       ],
       "notes": []
     }
