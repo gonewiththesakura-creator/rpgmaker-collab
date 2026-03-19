@@ -1,0 +1,35 @@
+{
+  "checkSuite": "consistency",
+  "overallStatus": "PASS",
+  "checks": [
+    {
+      "checkName": "Map Existence Check",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [],
+      "timestamp": "2026-03-19T10:30:00+08:00"
+    },
+    {
+      "checkName": "Key Events Check",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [],
+      "timestamp": "2026-03-19T10:30:01+08:00"
+    },
+    {
+      "checkName": "Switches/Variables Check",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [],
+      "timestamp": "2026-03-19T10:30:02+08:00"
+    },
+    {
+      "checkName": "Key Items Check",
+      "status": "PASS",
+      "errors": [],
+      "warnings": [],
+      "timestamp": "2026-03-19T10:30:03+08:00"
+    }
+  ],
+  "timestamp": "2026-03-19T10:30:03+08:00"
+}
