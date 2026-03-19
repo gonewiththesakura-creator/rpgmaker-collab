@@ -18,6 +18,12 @@
 
 ## 步骤1: 基线检查结果（执行前）
 
+**执行命令**:
+```bash
+python tools/rpg-cli/rpg_check.py consistency > day2-before-consistency.json
+python tools/rpg-cli/rpg_check.py flow --profile demo-lite > day2-before-flow.json
+```
+
 ### consistency-before.json
 
 ```json
@@ -29,8 +35,6 @@
   "hint": "_____________"
 }
 ```
-
-**截图位置**: [请粘贴截图]
 
 **备注**: ___________
 
@@ -47,8 +51,6 @@
   "hint": "_____________"
 }
 ```
-
-**截图位置**: [请粘贴截图]
 
 **备注**: ___________
 
@@ -136,6 +138,12 @@ _______________
 ---
 
 ## 步骤5: 最终检查结果（执行后）
+
+**执行命令**:
+```bash
+python tools/rpg-cli/rpg_check.py consistency > day2-after-consistency.json
+python tools/rpg-cli/rpg_check.py flow --profile demo-lite > day2-after-flow.json
+```
 
 ### consistency-after.json
 

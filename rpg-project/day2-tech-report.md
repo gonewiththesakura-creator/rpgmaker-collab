@@ -56,8 +56,8 @@ Python 3.x.x      [3.8+]
 **执行命令**:
 ```bash
 cd <你的MZ工程根目录>
-python tools/rpg-cli/rpg_check.py consistency --output day2-before-consistency.json
-python tools/rpg-cli/rpg_check.py flow --profile demo-lite --output day2-before-flow.json
+python tools/rpg-cli/rpg_check.py consistency > day2-before-consistency.json
+python tools/rpg-cli/rpg_check.py flow --profile demo-lite > day2-before-flow.json
 ```
 
 **预期输出**:
@@ -212,8 +212,8 @@ ls -la data/Map003.json
 
 **执行命令**:
 ```bash
-python tools/rpg-cli/rpg_check.py consistency --output day2-after-consistency.json
-python tools/rpg-cli/rpg_check.py flow --profile demo-lite --output day2-after-flow.json
+python tools/rpg-cli/rpg_check.py consistency > day2-after-consistency.json
+python tools/rpg-cli/rpg_check.py flow --profile demo-lite > day2-after-flow.json
 ```
 
 **预期输出**:

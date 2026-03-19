@@ -260,8 +260,8 @@
 ### 17. 运行检查
 ```bash
 cd <工程目录>
-python tools/rpg-cli/rpg_check.py consistency
-python tools/rpg-cli/rpg_check.py flow --profile demo-lite
+python tools/rpg-cli/rpg_check.py consistency > day2-after-consistency.json
+python tools/rpg-cli/rpg_check.py flow --profile demo-lite > day2-after-flow.json
 ```
 
 **成功判定**: 两个都显示PASS
