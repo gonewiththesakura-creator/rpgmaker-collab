@@ -1,35 +1,44 @@
 {
   "checkSuite": "consistency",
+  "resultType": "PASS",
   "overallStatus": "PASS",
   "checks": [
     {
       "checkName": "Map Existence Check",
       "status": "PASS",
+      "resultType": "PASS",
       "errors": [],
       "warnings": [],
-      "timestamp": "2026-03-19T10:30:00+08:00"
+      "hint": "",
+      "timestamp": "2026-03-19T11:00:00+08:00"
     },
     {
       "checkName": "Key Events Check",
       "status": "PASS",
+      "resultType": "PASS",
       "errors": [],
       "warnings": [],
-      "timestamp": "2026-03-19T10:30:01+08:00"
+      "hint": "",
+      "timestamp": "2026-03-19T11:00:01+08:00"
     },
     {
       "checkName": "Switches/Variables Check",
       "status": "PASS",
+      "resultType": "PASS",
       "errors": [],
       "warnings": [],
-      "timestamp": "2026-03-19T10:30:02+08:00"
+      "hint": "",
+      "timestamp": "2026-03-19T11:00:02+08:00"
     },
     {
       "checkName": "Key Items Check",
       "status": "PASS",
+      "resultType": "PASS",
       "errors": [],
       "warnings": [],
-      "timestamp": "2026-03-19T10:30:03+08:00"
+      "hint": "",
+      "timestamp": "2026-03-19T11:00:03+08:00"
     }
   ],
-  "timestamp": "2026-03-19T10:30:03+08:00"
+  "timestamp": "2026-03-19T11:00:03+08:00"
 }

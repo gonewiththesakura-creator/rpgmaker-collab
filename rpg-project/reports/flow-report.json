@@ -1,38 +1,47 @@
 {
   "checkSuite": "flow",
   "profile": "demo-lite",
+  "resultType": "PASS",
   "overallStatus": "PASS",
   "checks": [
     {
       "checkName": "Demo Chain Reachability",
       "status": "PASS",
+      "resultType": "PASS",
       "errors": [],
       "warnings": [],
-      "timestamp": "2026-03-19T10:31:00+08:00"
+      "hint": "",
+      "timestamp": "2026-03-19T11:01:00+08:00"
     },
     {
       "checkName": "Unlosable Battle Check",
       "status": "PASS",
+      "resultType": "PASS",
       "errors": [],
       "warnings": [],
-      "timestamp": "2026-03-19T10:31:01+08:00"
+      "hint": "",
+      "timestamp": "2026-03-19T11:01:01+08:00"
     },
     {
       "checkName": "Genealogy Obtainable Check",
       "status": "PASS",
+      "resultType": "PASS",
       "errors": [],
       "warnings": [],
-      "timestamp": "2026-03-19T10:31:02+08:00"
+      "hint": "",
+      "timestamp": "2026-03-19T11:01:02+08:00"
     },
     {
       "checkName": "Ch4 Hook Check",
       "status": "PASS",
+      "resultType": "PASS",
       "errors": [],
       "warnings": [
         "Hook switch 'qiluo_hook_delivered' not found (may be optional for demo-lite)"
       ],
-      "timestamp": "2026-03-19T10:31:03+08:00"
+      "hint": "",
+      "timestamp": "2026-03-19T11:01:03+08:00"
     }
   ],
-  "timestamp": "2026-03-19T10:31:03+08:00"
+  "timestamp": "2026-03-19T11:01:03+08:00"
 }

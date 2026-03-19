@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 rpg_check.py - RPGMaker MZ Project Checker
-MVP Version for Demo-Lite v0.1
+Version: v0.1 (Fixed)
 
 Commands:
     python rpg_check.py consistency
     python rpg_check.py flow --profile demo-lite
 
-Output: JSON reports with check results
+Output: JSON reports with resultType (PASS | CHECK_FAIL | CONFIG_ERROR)
 """
 
 import json
@@ -15,17 +15,74 @@ import sys
 import argparse
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
+
+
+class CheckResult:
+    """Standardized check result"""
+    PASS = "PASS"
+    CHECK_FAIL = "CHECK_FAIL"
+    CONFIG_ERROR = "CONFIG_ERROR"
+    
+    def __init__(self, check_name: str, result_type: str, errors: List[str], warnings: List[str], hint: str = ""):
+        self.check_name = check_name
+        self.result_type = result_type
+        self.errors = errors
+        self.warnings = warnings
+        self.hint = hint
+        self.timestamp = datetime.now().isoformat()
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        # status is derived from result_type for backward compatibility
+        status = "PASS" if self.result_type == self.PASS else "FAIL"
+        
+        return {
+            "checkName": self.check_name,
+            "status": status,  # legacy field
+            "resultType": self.result_type,
+            "errors": self.errors,
+            "warnings": self.warnings,
+            "hint": self.hint,
+            "timestamp": self.timestamp
+        }
 
 
 class RPGChecker:
     """RPGMaker MZ Project Checker"""
+    
+    # Map naming: RPGMaker MZ uses "Map001.json" format
+    MAP_PREFIX = "Map"
+    MAP_SUFFIX = ".json"
     
     def __init__(self, project_path: str):
         self.project_path = Path(project_path)
         self.data_path = self.project_path / "data"
         self.errors: List[str] = []
         self.warnings: List[str] = []
+        self.config_error: bool = False
+        self.hint: str = ""
+        
+    def validate_project_structure(self) -> Tuple[bool, str]:
+        """Validate project structure before running checks"""
+        if not self.project_path.exists():
+            self.config_error = True
+            self.hint = "请将 --project-path 指向 RPGMaker MZ 工程根目录"
+            return False, f"Project path does not exist: {self.project_path}"
+        
+        if not self.data_path.exists():
+            self.config_error = True
+            self.hint = "请将 --project-path 指向 RPGMaker MZ 工程根目录（应包含 data/ 子目录）"
+            return False, f"Data directory not found: {self.data_path}"
+        
+        # Check for critical files
+        system_file = self.data_path / "System.json"
+        if not system_file.exists():
+            self.config_error = True
+            self.hint = "RPGMaker MZ 工程缺少关键文件 data/System.json"
+            return False, "System.json not found - not a valid RPGMaker MZ project"
+        
+        return True, ""
         
     def _load_json(self, filename: str) -> Optional[Dict]:
         """Load JSON file from data directory"""
@@ -40,26 +97,20 @@ class RPGChecker:
             self.errors.append(f"JSON parse error in {filename}: {e}")
             return None
     
-    def _report(self, check_name: str, status: str) -> Dict[str, Any]:
-        """Generate standardized report"""
-        return {
-            "checkName": check_name,
-            "status": status,
-            "errors": self.errors.copy(),
-            "warnings": self.warnings.copy(),
-            "timestamp": datetime.now().isoformat()
-        }
+    def _format_map_name(self, map_id: int) -> str:
+        """Format map filename (e.g., 1 -> Map001.json)"""
+        return f"{self.MAP_PREFIX}{map_id:03d}{self.MAP_SUFFIX}"
 
 
 class ConsistencyChecker(RPGChecker):
     """Check project consistency"""
     
-    REQUIRED_MAPS = ["Map001.json", "Map002.json", "Map003.json"]
+    REQUIRED_MAP_IDS = [1, 2, 3]  # M001, M002, M003
     
     KEY_EVENTS = {
-        "Map001.json": [1, 2, 3, 4, 5],  # E101, E102, E104, E201, teleport
-        "Map002.json": [1, 2],           # teleport in/out
-        "Map003.json": [1, 2, 3],        # teleport, stele, black-cloth
+        1: [1, 2, 3, 4, 5],  # M001: E101, E102, E104, E201, teleport
+        2: [1, 2],           # M002: teleport in/out
+        3: [1, 2, 3],        # M003: teleport, stele, black-cloth
     }
     
     REQUIRED_SWITCHES = [
@@ -79,10 +130,9 @@ class ConsistencyChecker(RPGChecker):
     
     REQUIRED_ITEMS = [
         "残破家谱",                   # I[1]
-        "绮罗音碎片",                 # I[2] (optional for demo-lite)
     ]
     
-    def check_maps_exist(self) -> Dict[str, Any]:
+    def check_maps_exist(self) -> CheckResult:
         """Check 1: Map existence"""
         self.errors = []
         self.warnings = []
@@ -90,18 +140,19 @@ class ConsistencyChecker(RPGChecker):
         check_name = "Map Existence Check"
         missing_maps = []
         
-        for map_file in self.REQUIRED_MAPS:
+        for map_id in self.REQUIRED_MAP_IDS:
+            map_file = self._format_map_name(map_id)
             map_path = self.data_path / map_file
             if not map_path.exists():
                 missing_maps.append(map_file)
         
         if missing_maps:
             self.errors.append(f"Missing maps: {', '.join(missing_maps)}")
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
-        return self._report(check_name, "PASS")
+        return CheckResult(check_name, CheckResult.PASS, [], self.warnings)
     
-    def check_key_events(self) -> Dict[str, Any]:
+    def check_key_events(self) -> CheckResult:
         """Check 2: Key events existence"""
         self.errors = []
         self.warnings = []
@@ -109,9 +160,11 @@ class ConsistencyChecker(RPGChecker):
         check_name = "Key Events Check"
         missing_events = []
         
-        for map_file, event_ids in self.KEY_EVENTS.items():
+        for map_id, event_ids in self.KEY_EVENTS.items():
+            map_file = self._format_map_name(map_id)
             map_data = self._load_json(map_file)
             if not map_data:
+                missing_events.append(f"{map_file}: cannot load map")
                 continue
             
             existing_events = {e["id"] for e in map_data.get("events", []) if e}
@@ -122,11 +175,12 @@ class ConsistencyChecker(RPGChecker):
         
         if missing_events:
             self.errors.append(f"Missing events: {', '.join(missing_events)}")
-            return self._report(check_name, "FAIL")
+            # FIX: Must return CHECK_FAIL if errors exist
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
-        return self._report(check_name, "PASS")
+        return CheckResult(check_name, CheckResult.PASS, [], self.warnings)
     
-    def check_switches_variables(self) -> Dict[str, Any]:
+    def check_switches_variables(self) -> CheckResult:
         """Check 3: Switches and variables configuration"""
         self.errors = []
         self.warnings = []
@@ -135,7 +189,7 @@ class ConsistencyChecker(RPGChecker):
         system_data = self._load_json("System.json")
         
         if not system_data:
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
         switches = system_data.get("switches", [])
         variables = system_data.get("variables", [])
@@ -159,11 +213,11 @@ class ConsistencyChecker(RPGChecker):
             self.errors.append(f"Missing variables: {', '.join(missing_vars)}")
         
         if self.errors:
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
-        return self._report(check_name, "PASS")
+        return CheckResult(check_name, CheckResult.PASS, [], self.warnings)
     
-    def check_items(self) -> Dict[str, Any]:
+    def check_items(self) -> CheckResult:
         """Check 4: Key items existence"""
         self.errors = []
         self.warnings = []
@@ -172,7 +226,7 @@ class ConsistencyChecker(RPGChecker):
         items_data = self._load_json("Items.json")
         
         if not items_data:
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
         existing_items = {item["name"] for item in items_data if item}
         
@@ -183,26 +237,48 @@ class ConsistencyChecker(RPGChecker):
         
         if missing_items:
             self.errors.append(f"Missing items: {', '.join(missing_items)}")
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
-        return self._report(check_name, "PASS")
+        return CheckResult(check_name, CheckResult.PASS, [], self.warnings)
     
     def run_all(self) -> Dict[str, Any]:
         """Run all consistency checks"""
+        # Validate project structure first
+        valid, error_msg = self.validate_project_structure()
+        if not valid:
+            return {
+                "checkSuite": "consistency",
+                "resultType": CheckResult.CONFIG_ERROR,
+                "overallStatus": "FAIL",
+                "error": error_msg,
+                "hint": self.hint,
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        # Run checks
+        checks = [
+            self.check_maps_exist(),
+            self.check_key_events(),
+            self.check_switches_variables(),
+            self.check_items(),
+        ]
+        
         results = {
             "checkSuite": "consistency",
-            "checks": [
-                self.check_maps_exist(),
-                self.check_key_events(),
-                self.check_switches_variables(),
-                self.check_items(),
-            ],
+            "checks": [c.to_dict() for c in checks],
             "timestamp": datetime.now().isoformat()
         }
         
-        # Overall status
-        all_pass = all(c["status"] == "PASS" for c in results["checks"])
-        results["overallStatus"] = "PASS" if all_pass else "FAIL"
+        # Determine overall result type
+        if any(c.result_type == CheckResult.CONFIG_ERROR for c in checks):
+            results["resultType"] = CheckResult.CONFIG_ERROR
+            results["overallStatus"] = "FAIL"
+        elif any(c.result_type == CheckResult.CHECK_FAIL for c in checks):
+            results["resultType"] = CheckResult.CHECK_FAIL
+            results["overallStatus"] = "FAIL"
+        else:
+            results["resultType"] = CheckResult.PASS
+            results["overallStatus"] = "PASS"
         
         return results
 
@@ -211,47 +287,39 @@ class FlowChecker(RPGChecker):
     """Check demo flow for demo-lite profile"""
     
     FLOW_NODES = [
-        ("M001", "E101", "开场初始化"),
-        ("M001", "E102", "素问入门"),
-        ("M001", "E104", "谢临川初遇"),
-        ("M001", "E201", "师尊任务"),
-        ("M002", "teleport", "M001→M002"),
-        ("M003", "teleport", "M002→M003"),
-        ("M003", "E301+E302", "古碑调查"),
-        ("M003", "E303", "黑衣人出现"),
-        ("M003", "E304", "必败战斗"),
-        ("M003", "E305", "败退获取家谱"),
+        (1, "E101", "开场初始化"),
+        (1, "E102", "素问入门"),
+        (1, "E104", "谢临川初遇"),
+        (1, "E201", "师尊任务"),
+        (2, "teleport", "M001→M002"),
+        (3, "teleport", "M002→M003"),
+        (3, "E301+E302", "古碑调查"),
+        (3, "E303", "黑衣人出现"),
+        (3, "E304", "必败战斗"),
+        (3, "E305", "败退获取家谱"),
     ]
     
-    def check_demo_chain(self) -> Dict[str, Any]:
+    def check_demo_chain(self) -> CheckResult:
         """Check 1: Demo main chain reachable"""
         self.errors = []
         self.warnings = []
         
         check_name = "Demo Chain Reachability"
         
-        # Check each node
-        for map_name, event_ref, desc in self.FLOW_NODES:
-            map_file = f"{map_name}.json" if map_name.startswith("Map") else f"Map{map_name}.json"
+        for map_id, event_ref, desc in self.FLOW_NODES:
+            map_file = self._format_map_name(map_id)
             map_data = self._load_json(map_file)
             
             if not map_data:
                 self.errors.append(f"Cannot check {desc}: {map_file} not found")
                 continue
-            
-            # For teleport checks, verify map exists
-            if event_ref == "teleport":
-                continue  # Already checked map existence
-            
-            # For event checks, verify event exists
-            # (Simplified - actual implementation would check event content)
         
         if self.errors:
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
-        return self._report(check_name, "PASS")
+        return CheckResult(check_name, CheckResult.PASS, [], self.warnings)
     
-    def check_unlosable_battle(self) -> Dict[str, Any]:
+    def check_unlosable_battle(self) -> CheckResult:
         """Check 2: Ch3 black-cloth battle is 'unlosable'"""
         self.errors = []
         self.warnings = []
@@ -260,50 +328,45 @@ class FlowChecker(RPGChecker):
         
         troops_data = self._load_json("Troops.json")
         if not troops_data:
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
         # Check Troop 1 (黑衣人)
         if len(troops_data) < 2 or not troops_data[1]:
             self.errors.append("Troop 1 (黑衣人) not found")
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
         troop = troops_data[1]
         pages = troop.get("pages", [])
         
-        # Check for Troop Event that triggers on HP/turn threshold
         has_unlosable_mechanic = False
         for page in pages:
-            # Check if there's a condition for HP or turn count
-            # This is a simplified check - actual implementation would be more detailed
             if page.get("trigger") == 1:  # Turn End
                 has_unlosable_mechanic = True
                 break
         
         if not has_unlosable_mechanic:
             self.errors.append("Troop 1 missing unlosable mechanic (HP/turn threshold)")
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
-        return self._report(check_name, "PASS")
+        return CheckResult(check_name, CheckResult.PASS, [], self.warnings)
     
-    def check_genealogy_obtainable(self) -> Dict[str, Any]:
+    def check_genealogy_obtainable(self) -> CheckResult:
         """Check 3: '残破家谱' obtainable after retreat"""
         self.errors = []
         self.warnings = []
         
         check_name = "Genealogy Obtainable Check"
         
-        # Check Common Event 2 (败退获取家谱)
         common_events = self._load_json("CommonEvents.json")
         if not common_events or len(common_events) < 3:
             self.errors.append("Common Event 2 (败退获取家谱) not found")
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
         ce2 = common_events[2]
         if not ce2:
             self.errors.append("Common Event 2 is empty")
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
-        # Check if CE2 adds item 1 (残破家谱)
         commands = ce2.get("list", [])
         has_add_item = False
         for cmd in commands:
@@ -315,68 +378,92 @@ class FlowChecker(RPGChecker):
         
         if not has_add_item:
             self.errors.append("Common Event 2 does not add '残破家谱'")
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
-        return self._report(check_name, "PASS")
+        return CheckResult(check_name, CheckResult.PASS, [], self.warnings)
     
-    def check_ch4_hook(self) -> Dict[str, Any]:
+    def check_ch4_hook(self) -> CheckResult:
         """Check 4: Ch4 hook markers exist"""
         self.errors = []
         self.warnings = []
         
         check_name = "Ch4 Hook Check"
         
-        # Check if S[204] (qiluo_hook_delivered) switch is defined
         system_data = self._load_json("System.json")
         if not system_data:
-            return self._report(check_name, "FAIL")
+            return CheckResult(check_name, CheckResult.CHECK_FAIL, self.errors, self.warnings)
         
         switches = system_data.get("switches", [])
         
-        # Check for hook-related switches (simplified)
         hook_switches = ["qiluo_hook_delivered", "plot_ch4_done"]
         for sw in hook_switches:
             if sw not in switches:
                 self.warnings.append(f"Hook switch '{sw}' not found (may be optional for demo-lite)")
         
-        return self._report(check_name, "PASS")
+        return CheckResult(check_name, CheckResult.PASS, [], self.warnings)
     
     def run_all(self, profile: str) -> Dict[str, Any]:
         """Run all flow checks for given profile"""
         if profile != "demo-lite":
             return {
                 "checkSuite": "flow",
+                "resultType": CheckResult.CONFIG_ERROR,
+                "overallStatus": "FAIL",
                 "error": f"Unknown profile: {profile}",
+                "hint": "Available profiles: demo-lite",
                 "timestamp": datetime.now().isoformat()
             }
+        
+        # Validate project structure first
+        valid, error_msg = self.validate_project_structure()
+        if not valid:
+            return {
+                "checkSuite": "flow",
+                "profile": profile,
+                "resultType": CheckResult.CONFIG_ERROR,
+                "overallStatus": "FAIL",
+                "error": error_msg,
+                "hint": self.hint,
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        checks = [
+            self.check_demo_chain(),
+            self.check_unlosable_battle(),
+            self.check_genealogy_obtainable(),
+            self.check_ch4_hook(),
+        ]
         
         results = {
             "checkSuite": "flow",
             "profile": profile,
-            "checks": [
-                self.check_demo_chain(),
-                self.check_unlosable_battle(),
-                self.check_genealogy_obtainable(),
-                self.check_ch4_hook(),
-            ],
+            "checks": [c.to_dict() for c in checks],
             "timestamp": datetime.now().isoformat()
         }
         
-        # Overall status
-        all_pass = all(c["status"] == "PASS" for c in results["checks"])
-        results["overallStatus"] = "PASS" if all_pass else "FAIL"
+        # Determine overall result type
+        if any(c.result_type == CheckResult.CONFIG_ERROR for c in checks):
+            results["resultType"] = CheckResult.CONFIG_ERROR
+            results["overallStatus"] = "FAIL"
+        elif any(c.result_type == CheckResult.CHECK_FAIL for c in checks):
+            results["resultType"] = CheckResult.CHECK_FAIL
+            results["overallStatus"] = "FAIL"
+        else:
+            results["resultType"] = CheckResult.PASS
+            results["overallStatus"] = "PASS"
         
         return results
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="RPGMaker MZ Project Checker",
+        description="RPGMaker MZ Project Checker v0.1",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
     python rpg_check.py consistency
     python rpg_check.py flow --profile demo-lite
+    python rpg_check.py consistency --project-path /path/to/project
         """
     )
     
@@ -444,8 +531,12 @@ Examples:
     # Print summary to stdout
     print(json.dumps(results, ensure_ascii=False, indent=2))
     
-    # Exit code
-    sys.exit(0 if results.get("overallStatus") == "PASS" else 1)
+    # Exit code based on resultType
+    result_type = results.get("resultType", "CHECK_FAIL")
+    if result_type == CheckResult.PASS:
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

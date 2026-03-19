@@ -1,10 +1,13 @@
-# RPG-CLI Tools
+# RPG-CLI Tools v0.1
 
-RPGMaker MZ Project Checker - MVP Version
+RPGMaker MZ Project Checker - Fixed Version
 
 ## Overview
 
 Minimal checking tool for RPGMaker MZ projects, designed for the "太玄界" RPG project.
+
+**Version**: v0.1 (Fixed)  
+**Changes**: Map naming unified, resultType added, CONFIG_ERROR handling
 
 ## Installation
 
@@ -26,7 +29,7 @@ python rpg_check.py consistency
 ```
 
 **Checks:**
-- Map existence (M001, M002, M003)
+- Map existence (Map001.json, Map002.json, Map003.json)
 - Key events existence
 - Switches/variables configuration
 - Key items existence (残破家谱, etc.)
@@ -56,13 +59,16 @@ All checks output JSON with the following structure:
 ```json
 {
   "checkSuite": "consistency",
-  "overallStatus": "PASS|FAIL",
+  "resultType": "PASS",
+  "overallStatus": "PASS",
   "checks": [
     {
       "checkName": "Map Existence Check",
       "status": "PASS",
+      "resultType": "PASS",
       "errors": [],
       "warnings": [],
+      "hint": "",
       "timestamp": "2026-03-19T10:30:00"
     }
   ],
@@ -70,10 +76,38 @@ All checks output JSON with the following structure:
 }
 ```
 
-## Exit Codes
+### Result Types
 
-- `0`: All checks passed
-- `1`: One or more checks failed
+| resultType | Meaning | Exit Code |
+|-----------|---------|-----------|
+| `PASS` | All checks passed | 0 |
+| `CHECK_FAIL` | Data exists but check failed | 1 |
+| `CONFIG_ERROR` | Project structure invalid | 1 |
+
+### Error Handling
+
+**CONFIG_ERROR with hint:**
+
+```json
+{
+  "checkSuite": "consistency",
+  "resultType": "CONFIG_ERROR",
+  "overallStatus": "FAIL",
+  "error": "Data directory not found",
+  "hint": "请将 --project-path 指向 RPGMaker MZ 工程根目录（应包含 data/ 子目录）",
+  "timestamp": "2026-03-19T10:30:00"
+}
+```
+
+## Map Naming Convention
+
+This tool uses RPGMaker MZ standard naming:
+
+- Map 1 → `Map001.json`
+- Map 2 → `Map002.json`
+- Map 3 → `Map003.json`
+
+**Note**: The tool only recognizes this format. Do not use `M001.json` or `MapM001.json`.
 
 ## Project Structure
 
@@ -89,28 +123,15 @@ rpgmaker-collab/
         └── flow-report.json
 ```
 
-## MVP Scope (Locked)
-
-**Included:**
-- Basic consistency checks
-- Demo-lite flow validation
-- JSON output
-- Command-line interface
-
-**Excluded (for now):**
-- SKILL.md integration
-- REPL mode
-- Multi-platform support
-- Full 7-phase pipeline
-
 ## Usage Examples
 
-### Check consistency
+### Check consistency (current directory)
 
 ```bash
 $ python tools/rpg-cli/rpg_check.py consistency
 {
   "checkSuite": "consistency",
+  "resultType": "PASS",
   "overallStatus": "PASS",
   "checks": [...]
 }
@@ -122,6 +143,7 @@ $ python tools/rpg-cli/rpg_check.py consistency
 $ python tools/rpg-cli/rpg_check.py flow --profile demo-lite
 {
   "checkSuite": "flow",
+  "resultType": "PASS",
   "overallStatus": "PASS",
   "checks": [...]
 }
@@ -133,12 +155,46 @@ $ python tools/rpg-cli/rpg_check.py flow --profile demo-lite
 $ python tools/rpg-cli/rpg_check.py consistency --project-path /path/to/project
 ```
 
+### CONFIG_ERROR example (wrong path)
+
+```bash
+$ python tools/rpg-cli/rpg_check.py consistency --project-path /wrong/path
+{
+  "checkSuite": "consistency",
+  "resultType": "CONFIG_ERROR",
+  "overallStatus": "FAIL",
+  "error": "Data directory not found: /wrong/path/data",
+  "hint": "请将 --project-path 指向 RPGMaker MZ 工程根目录（应包含 data/ 子目录）",
+  "timestamp": "2026-03-19T10:30:00"
+}
+```
+
+## MVP Scope (Locked)
+
+**Included:**
+- Basic consistency checks
+- Demo-lite flow validation
+- JSON output with resultType
+- CONFIG_ERROR handling with hints
+- Command-line interface
+
+**Excluded (for now):**
+- SKILL.md integration
+- REPL mode
+- Multi-platform support
+- Full 7-phase pipeline
+
+## Exit Codes
+
+- `0`: PASS (all checks passed)
+- `1`: CHECK_FAIL or CONFIG_ERROR
+
 ## Development
 
 ### Adding New Checks
 
 1. Extend `RPGChecker` base class
-2. Implement check method
+2. Return `CheckResult` with proper `resultType`
 3. Add to `run_all()` method
 4. Update this README
 
@@ -150,6 +206,20 @@ Run against a real RPGMaker MZ project:
 cd /path/to/rpgmaker-project
 python /path/to/rpg_check.py consistency
 ```
+
+## Changelog
+
+### v0.1 (Fixed)
+- Fixed: Map naming unified to `Map001.json` format
+- Fixed: PASS/FAIL logic - errors now correctly result in CHECK_FAIL
+- Added: CONFIG_ERROR result type for project structure issues
+- Added: `hint` field for configuration error guidance
+- Added: `resultType` field in all outputs
+
+### v0.0 (Initial)
+- Basic consistency checks
+- Flow checks for demo-lite
+- JSON output
 
 ## License
 
