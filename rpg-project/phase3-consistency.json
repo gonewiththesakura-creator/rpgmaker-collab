@@ -1,0 +1,72 @@
+{
+  "checkSuite": "consistency-phase3",
+  "resultType": "PASS",
+  "overallStatus": "PASS",
+  "integrationPhase": "Phase 3 v1",
+  "commit": "9532dc4",
+  "timestamp": "2026-03-20T08:29:00Z",
+  "checks": [
+    {
+      "checkName": "P0 Event Presence",
+      "status": "PASS",
+      "resultType": "PASS",
+      "details": "All 7 P0 events present in scene script",
+      "events": [
+        "M004_Rift_Edge_QTE_Aftermath",
+        "M005_Campfire_Dialogue_Start",
+        "M006_Cave_Entrance_Triple_Doors",
+        "M007_Cave_Midway_Registry_Investigation",
+        "M008_Cave_Depths_Decision_And_Warning",
+        "M004_Rift_Path_Choice",
+        "M008_Blackcloak_Approaching_Warning"
+      ]
+    },
+    {
+      "checkName": "Variable Limit",
+      "status": "PASS",
+      "resultType": "PASS",
+      "details": "Total variables: 38 (under limit 50)",
+      "newVariables": [
+        "GS_RIFT_CLIMB_SUCCESS",
+        "GS_CAMP_FIRST_CHOICE",
+        "GS_REGISTRY_PATH_CHOSEN",
+        "GS_RESIDUE_IDENTITY_HINT",
+        "GS_BLACKCLOAK_APPROACHING"
+      ]
+    },
+    {
+      "checkName": "Text Length Compliance",
+      "status": "PASS",
+      "resultType": "PASS",
+      "details": "All compressed texts ≤ 3 lines (MZ dialog)",
+      "samples": [
+        "M004_Event1: 3 lines",
+        "M005_Event1: 4 lines (options)",
+        "M007_Registry_Page2: 3 lines"
+      ]
+    },
+    {
+      "checkName": "Priority Classification",
+      "status": "PASS",
+      "resultType": "PASS",
+      "details": "P0=7 events, P1=5 events, P2=2 content items correctly marked",
+      "reference": "writer-phase3-integration-pack-v1.md Section C"
+    },
+    {
+      "checkName": "Top 8 Coverage",
+      "status": "PASS",
+      "resultType": "PASS",
+      "details": "All 8 priority segments integrated",
+      "segments": [
+        "Rift rescue aftermath",
+        "Campfire choice",
+        "Triple door selection",
+        "Registry truth",
+        "Registry departure decision",
+        "Blackcloak warning",
+        "Rift path choice",
+        "Xie bond dialogue"
+      ]
+    }
+  ]
+}
